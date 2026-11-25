@@ -160,7 +160,7 @@ func TestStatusBar_ChatNormalHints(t *testing.T) {
 	sb.SetActivePane("chat")
 	sb.SetMode(keys.ModeNormal)
 	view := strip(sb.View())
-	assert.Contains(t, view, "↑ scroll ↓")
+	assert.Contains(t, view, "ctrl+j/k scroll")
 	assert.Contains(t, view, "j/k select")
 	assert.NotContains(t, view, "menu")
 	assert.Contains(t, view, "a write")

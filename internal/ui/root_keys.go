@@ -205,6 +205,17 @@ func (m RootModel) handleMainKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
+	// Tab includes the editor in the normal focus order. A mention picker
+	// keeps Tab for accepting the current completion.
+	if (keyStr == "tab" || keyStr == "shift+tab") && m.mentionPopup == nil {
+		switch m.keyMap.Resolve(m.focusedContext(), keyStr) {
+		case keys.ActionFocusNext:
+			return m.cycleTab(1)
+		case keys.ActionFocusPrev:
+			return m.cycleTab(-1)
+		}
+	}
+
 	// In insert mode, bypass global bindings and pass key directly to chat/composer
 	if m.focus == FocusChat && m.vimState.Mode == keys.ModeInsert {
 		// While the mention popup is open it owns navigation/selection keys.
@@ -226,10 +237,7 @@ func (m RootModel) handleMainKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		if keyStr == "esc" {
 			// esc only leaves insert mode; a staged attachment is kept (drop it
 			// explicitly with the cancel key in normal mode).
-			m.vimState.Mode = keys.ModeNormal
-			m.statusBar.SetMode(keys.ModeNormal)
-			newPane, cmd := m.chat.Update(keys.ActionMsg{Action: keys.ActionNormal})
-			m.chat = newPane.(*screens.ChatModel)
+			cmd := m.blurComposer()
 			return m, cmd
 		}
 		if m.keyMap.Resolve(keys.ContextComposer, keys.NormalizeKey(keyStr)) == keys.ActionPasteImage {

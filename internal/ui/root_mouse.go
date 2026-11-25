@@ -165,16 +165,7 @@ func (m RootModel) handleMouseClick(mo tea.Mouse) (tea.Model, tea.Cmd) {
 		return res, tea.Batch(blurCmd, fcmd)
 
 	case regionComposer:
-		res, fcmd := m.focusPane(FocusChat)
-		m = res.(RootModel)
-		if !m.chat.ComposerFocused() {
-			m.vimState.Mode = keys.ModeInsert
-			m.statusBar.SetMode(keys.ModeInsert)
-			newPane, icmd := m.chat.Update(keys.ActionMsg{Action: keys.ActionInsert})
-			m.chat = newPane.(*screens.ChatModel)
-			return m, tea.Batch(fcmd, icmd)
-		}
-		return m, fcmd
+		return m.focusComposer()
 
 	case regionFolders:
 		res, fcmd := m.focusPane(FocusFolders)

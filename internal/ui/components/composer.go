@@ -51,6 +51,7 @@ type pendingMention struct {
 
 func NewComposer(width int) *Composer {
 	ta := textarea.New()
+	ta.SetVirtualCursor(false)
 	ta.ShowLineNumbers = false
 	ta.Prompt = " " // one-space inset; replaces the legacy "> " prompt
 	ta.MaxHeight = maxComposerLines
@@ -485,10 +486,10 @@ func humanSize(n int64) string {
 	return fmt.Sprintf("%.1f %cB", float64(n)/float64(div), "KMGTPE"[exp])
 }
 
-// buildContent assembles the composer's inner content: optional attachment chip,
+// headerLines builds the rows above the editable text: optional attachment chip,
 // an optional blank separator before the reply/edit preview when chips are
 // staged, optional reply/edit preview (plus a blank spacer line), then the textarea.
-func (c *Composer) buildContent() string {
+func (c *Composer) headerLines() []string {
 	var parts []string
 	chips := c.attachmentLines()
 	parts = append(parts, chips...)
@@ -498,8 +499,26 @@ func (c *Composer) buildContent() string {
 	if c.replyPreview != "" {
 		parts = append(parts, c.replyPreview, "")
 	}
-	parts = append(parts, c.ta.View())
-	return strings.Join(parts, "\n")
+	return parts
+}
+
+func (c *Composer) buildContent() string {
+	return strings.Join(append(c.headerLines(), c.ta.View()), "\n")
+}
+
+// Cursor is relative to the outside of the editor box. The textarea already
+// accounts for its prompt, wrapped lines and the scroll position.
+func (c *Composer) Cursor() *tea.Cursor {
+	cursor := c.ta.Cursor()
+	if cursor == nil {
+		return nil
+	}
+	cursor.X++
+	cursor.Y++
+	for _, line := range c.headerLines() {
+		cursor.Y += 1 + strings.Count(line, "\n")
+	}
+	return cursor
 }
 
 // VisualHeight returns the total number of terminal rows that View() occupies:

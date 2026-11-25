@@ -332,6 +332,13 @@ func (m *ChatModel) ScrollToFirstUnread(readMaxID int) bool {
 }
 func (m *ChatModel) VisibleReadMaxID() int { return m.msgList.VisibleReadMaxID() }
 func (m *ChatModel) ComposerFocused() bool { return m.composerFocused }
+func (m *ChatModel) ComposerCursor() *tea.Cursor {
+	if m.loading || m.loadErr != "" || (m.header.ChatID == 0 && m.msgList.Count() == 0) {
+		return nil
+	}
+	return m.composer.Cursor()
+}
+
 func (m *ChatModel) ComposerValue() string { return m.composer.Value() }
 func (m *ChatModel) ComposerHeight() int   { return m.composer.VisualHeight() }
 
@@ -483,6 +490,8 @@ func (m *ChatModel) refreshPlaceholder() {
 		default:
 			ph = "Message"
 		}
+	} else if m.keyMap.Resolve(keys.ContextChat, "tab") == keys.ActionFocusNext {
+		ph = "Tab — написать сообщение"
 	} else {
 		if key := m.keyMap.KeyFor(keys.ContextChat, keys.ActionInsert); key != "" {
 			ph = "Press " + key + " to write…"

@@ -202,6 +202,7 @@ func (m RootModel) View() tea.View {
 	content = m.fillCanvas(content)
 	v := tea.NewView(content)
 	v.AltScreen = true
+	v.Cursor = m.selectionCursor()
 	// Enable mouse reporting (clicks + wheel). CellMotion delivers button and
 	// wheel events; motion events while dragging are ignored.
 	v.MouseMode = tea.MouseModeCellMotion
