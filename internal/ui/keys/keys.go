@@ -26,6 +26,10 @@ const (
 	ActionQuit          Action = "quit"
 	ActionDismissToast  Action = "dismiss_toast"
 	ActionShowHelp      Action = "show_help"
+	// ActionToggleMouse hands the mouse back to the terminal so text can be
+	// selected and copied with a plain drag; pressed again, tele takes clicks
+	// and the wheel back.
+	ActionToggleMouse Action = "toggle_mouse"
 	// ActionShowSettings opens the settings overlay: everything tele can be
 	// configured with, in the order the config file has it.
 	ActionShowSettings Action = "show_settings"
@@ -69,6 +73,7 @@ func DefaultKeyMap() KeyMap {
 			"ctrl+x":    ActionDismissToast,
 			"?":         ActionShowHelp,
 			",":         ActionShowSettings,
+			"M":         ActionToggleMouse,
 			"g L":       ActionLogOut,
 			// The chat pane binds / to its own search, which wins there (#132).
 			"/":   ActionChatSearch,

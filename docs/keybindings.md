@@ -10,6 +10,7 @@
 | `q` / `Ctrl+Q` / `Ctrl+C` | Quit            |
 | `?`                       | Keyboard shortcuts |
 | `,`                       | Settings        |
+| `M`                       | Release the mouse to select and copy text; again to take it back |
 | `/`                       | Search chats (in the chat pane, `/` searches its messages) |
 | `g /`                     | Search the messages of every chat |
 | `g L`                     | Log out         |

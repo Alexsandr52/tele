@@ -59,6 +59,7 @@ var defaultLabels = map[Action]Label{
 	ActionShowHelp:      {Short: "help", Long: "keyboard shortcuts"},
 	ActionShowSettings:  {Short: "settings", Long: "what tele can be configured with"},
 	ActionLogOut:        {Short: "log out", Long: "log out of this account"},
+	ActionToggleMouse:   {Short: "mouse", Long: "release the mouse to select text, or take it back"},
 	ActionReloadConfig:  {Short: "reload", Long: "re-read the config and theme files"},
 	ActionReloadThemes:  {Short: "reload", Long: "re-read the config and theme files"},
 	// Chat / message actions.

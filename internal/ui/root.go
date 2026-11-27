@@ -58,6 +58,9 @@ type RootModel struct {
 	keyMap    keys.KeyMap
 	matcher   *keys.Matcher
 	owner     Owner
+	// mouseReleased leaves the mouse to the terminal, so a drag selects text
+	// instead of reaching tele (ActionToggleMouse).
+	mouseReleased bool
 	// chatListSub is the chatlist subscription; chatSub is the open chat's.
 	// Zero means not subscribed.
 	chatListSub project.SubID

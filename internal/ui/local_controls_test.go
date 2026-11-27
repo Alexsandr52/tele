@@ -108,3 +108,18 @@ func TestLocalGraphicsFixture(t *testing.T) {
 	_, err := p.Run()
 	require.NoError(t, err)
 }
+
+// M hands the mouse to the terminal so text can be selected with a drag,
+// and takes it back when pressed again.
+func TestToggleMouseReleasesSelection(t *testing.T) {
+	m := controlsFixture()
+	require.Equal(t, tea.MouseModeCellMotion, m.View().MouseMode)
+	press := func() {
+		next, _ := m.Update(tea.KeyPressMsg{Code: 'M', Text: "M"})
+		m = next.(RootModel)
+	}
+	press()
+	require.Equal(t, tea.MouseModeNone, m.View().MouseMode)
+	press()
+	require.Equal(t, tea.MouseModeCellMotion, m.View().MouseMode)
+}

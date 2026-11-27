@@ -62,7 +62,7 @@ var actionDisplayOrder = []keys.Action{
 	keys.ActionArchive, keys.ActionUnarchive, keys.ActionAddToFolder, keys.ActionAttach,
 	keys.ActionPasteImage, keys.ActionToggleSendAs, keys.ActionCancelUpload,
 	keys.ActionDelete, keys.ActionDeleteRevoke, keys.ActionDeleteMe,
-	keys.ActionDismissToast, keys.ActionShowHelp, keys.ActionCancel, keys.ActionQuit,
+	keys.ActionToggleMouse, keys.ActionDismissToast, keys.ActionShowHelp, keys.ActionCancel, keys.ActionQuit,
 }
 
 // navPairs are (down, up) actions collapsed into one "downKey/upKey" row.

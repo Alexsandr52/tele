@@ -52,6 +52,14 @@ func (m RootModel) globalAction(action keys.Action) (tea.Model, tea.Cmd, bool) {
 			return m, nil, true
 		}
 		return m, tea.Quit, true
+	case keys.ActionToggleMouse:
+		m.mouseReleased = !m.mouseReleased
+		if m.mouseReleased {
+			m.statusBar.SetStatus("Mouse released: drag to select text")
+		} else {
+			m.statusBar.SetStatus("Mouse captured")
+		}
+		return m, nil, true
 	case keys.ActionDismissToast:
 		m.toasts.DismissTop()
 		return m, nil, true
