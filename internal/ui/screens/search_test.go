@@ -191,10 +191,45 @@ func TestSearch_ClearingQueryClearsGlobal(t *testing.T) {
 	assert.False(t, m.GlobalLoading())
 }
 
-func TestSearch_ForwardModeNeverSearchesGlobally(t *testing.T) {
+func TestSearch_ForwardModeFindsPeopleWithoutDialog(t *testing.T) {
 	m := screens.NewForwardPicker(makeForwardChats(), 555, 80, 24, nil)
+	m = loadGlobal(t, m, "zz", []project.ChatRow{{ID: 99, Title: "Zoe", IsUser: true}})
+	require.Len(t, m.GlobalResults(), 1)
+	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
+	require.NotNil(t, cmd)
+	req, ok := cmd().(screens.ForwardToChatRequest)
+	require.True(t, ok, "Enter on a found person must forward to them")
+	assert.Equal(t, int64(99), req.ToChatID)
+}
+
+func TestSearch_ForumTopicPickerNeverSearchesGlobally(t *testing.T) {
+	m := screens.NewForwardTopicPicker(7, "Forum", []project.TopicRow{{ID: 1, Title: "General"}}, 555, 80, 24, nil)
 	_, cmd := typeRunes(m, "ab")
-	assert.Nil(t, cmd, "forward mode must not emit a debounce command")
+	assert.Nil(t, cmd, "a topic list must not ask Telegram for people")
+}
+
+func TestSearch_LocalFilterMatchesUsernameYoAndWordOrder(t *testing.T) {
+	chats := []project.ChatRow{
+		{ID: 1, Title: "Иван Петров"},
+		{ID: 2, Title: "Алёна", Username: "alena_k"},
+		{ID: 3, Title: "Bob", Username: "bobby"},
+	}
+	cases := map[string][]int64{
+		"петров иван":  {1},
+		"алена":        {2},
+		"@bobby":       {3},
+		"alena":        {2},
+		"иван сидоров": nil,
+	}
+	for q, want := range cases {
+		m := screens.NewSearchModel(chats, 80, 24, nil)
+		m, _ = typeRunes(m, q)
+		var got []int64
+		for _, c := range m.Results() {
+			got = append(got, c.ID)
+		}
+		assert.Equal(t, want, got, "query %q", q)
+	}
 }
 
 // loadGlobal drives the model from a query to a populated global-results state.

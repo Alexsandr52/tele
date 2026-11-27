@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -182,6 +183,14 @@ func (f *mediaFetcher) streamInto(ctx context.Context, chatID int64, msgID int, 
 		zap.Int64("chat_id", chatID), zap.Int("msg_id", msgID), zap.String("slot", slot.String()),
 	}
 	if !f.claimRefresh(ref.cacheKey()) {
+		// Another fetch may have refreshed this message meanwhile (the thumb
+		// and the full photo share a reference, and a reconnect expires many at
+		// once). If state now holds a different reference, it is worth one try.
+		if newer, ok := f.newerRef(chatID, msgID, slot, ref); ok {
+			if err := f.attempt(ctx, newer, file, w); err == nil {
+				return nil
+			}
+		}
 		f.log.Warn("media: reference expired again within the refresh cooldown, giving up",
 			append(where, zap.String("key", ref.cacheKey()))...)
 		return err
@@ -212,6 +221,29 @@ func (f *mediaFetcher) streamInto(ctx context.Context, chatID int64, msgID int, 
 		return err
 	}
 	return nil
+}
+
+// newerRef resolves the slot again from state and reports it when its file
+// reference differs from the one that just expired.
+func (f *mediaFetcher) newerRef(chatID int64, msgID int, slot domain.MediaSlot, tried mediaRef) (mediaRef, bool) {
+	msg, err := messageByID(f.state, chatID, msgID)
+	if err != nil {
+		return mediaRef{}, false
+	}
+	cur, err := resolveMediaRef(msg, slot)
+	if err != nil || bytes.Equal(cur.fileReference(), tried.fileReference()) {
+		return mediaRef{}, false
+	}
+	return cur, true
+}
+
+// fileReference is the reference the download would present to Telegram.
+func (r mediaRef) fileReference() []byte {
+	switch r.slot {
+	case domain.PhotoThumb, domain.PhotoFull:
+		return r.photo.FileReference
+	}
+	return r.doc.FileReference
 }
 
 // attempt rewinds file and streams one download into it. A watched download

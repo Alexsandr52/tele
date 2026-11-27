@@ -11,6 +11,24 @@ Older releases are at <https://github.com/sorokin-vladimir/tele/releases>.
 
 ## [Unreleased]
 
+### Added
+
+- `M` releases the mouse to the terminal, so message text can be selected
+  and copied with a plain drag; `M` again takes clicks and the wheel back.
+- The forward picker (`f`) finds people on Telegram as search does, so a
+  message can be forwarded to someone with no dialog yet.
+
+### Changed
+
+- Search matches a chat's `@username` as well as its title, treats `ё` and `е`
+  alike, and finds the query's words in any order.
+
+### Fixed
+
+- A photo whose file reference another download had just refreshed is tried
+  with that reference instead of being given up on, so previews no longer
+  vanish after a reconnect.
+
 ## [2.1.4] - 2026-11-25
 
 ### Added

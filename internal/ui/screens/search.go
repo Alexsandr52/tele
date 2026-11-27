@@ -260,13 +260,20 @@ func (m *SearchModel) spinnerTick(serial int) tea.Cmd {
 	})
 }
 
+// searchesGlobally reports whether the overlay asks Telegram for people as
+// well as filtering the chats it holds. The forward picker does too, so a
+// message can go to someone with no dialog yet; only a forum's topic list,
+// which holds topics rather than chats, does not.
+func (m *SearchModel) searchesGlobally() bool {
+	return m.forwardForum == 0
+}
+
 // onQueryChanged re-runs the local filter and (re)schedules a debounced global
-// search. Returns the command to run (debounce tick or nil). Forward mode never
-// searches globally.
+// search. Returns the command to run (debounce tick or nil).
 func (m *SearchModel) onQueryChanged() tea.Cmd {
 	m.filter()
 	m.serial++
-	if m.forwardMsgID != 0 || len([]rune(m.query)) < searchMinChars {
+	if !m.searchesGlobally() || len([]rune(m.query)) < searchMinChars {
 		m.globalResults = nil
 		m.globalLoading = false
 		m.syncCount()
@@ -304,7 +311,7 @@ func (m *SearchModel) Update(msg tea.Msg) (*SearchModel, tea.Cmd) {
 	}
 	switch tm := msg.(type) {
 	case searchDebounceMsg:
-		if tm.Serial != m.serial || m.forwardMsgID != 0 || len([]rune(m.query)) < searchMinChars {
+		if tm.Serial != m.serial || !m.searchesGlobally() || len([]rune(m.query)) < searchMinChars {
 			return m, nil
 		}
 		m.globalLoading = true
@@ -436,15 +443,38 @@ func (m *SearchModel) updateComment(msg tea.Msg) (*SearchModel, tea.Cmd) {
 }
 
 func (m *SearchModel) filter() {
-	q := strings.ToLower(m.query)
+	words := strings.Fields(normalizeSearch(m.query))
 	filtered := make([]project.ChatRow, 0, len(m.all))
 	for _, c := range m.all {
-		if q == "" || strings.Contains(strings.ToLower(c.Title), q) {
+		if chatMatches(c, words) {
 			filtered = append(filtered, c)
 		}
 	}
 	m.results = filtered
 	m.syncCount()
+}
+
+// normalizeSearch folds what a person typing a name does not tell apart:
+// case, ё and е, and a leading @ on a username.
+func normalizeSearch(s string) string {
+	s = strings.ToLower(s)
+	s = strings.ReplaceAll(s, "ё", "е")
+	return strings.ReplaceAll(s, "@", "")
+}
+
+// chatMatches reports whether every query word occurs in the chat's title or
+// username, in any order: "петров иван" finds "Иван Петров".
+func chatMatches(c project.ChatRow, words []string) bool {
+	if len(words) == 0 {
+		return true
+	}
+	hay := normalizeSearch(c.Title + " " + c.Username)
+	for _, w := range words {
+		if !strings.Contains(hay, w) {
+			return false
+		}
+	}
+	return true
 }
 
 const searchCaret = "█"
